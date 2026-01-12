@@ -2567,7 +2567,9 @@ local function onPlayerJoin(player)
         if identifiers.beammp then
             CobaltDB.new("playersDB/" .. identifiers.beammp)
             CobaltDB.set("playersDB/" .. identifiers.beammp, "beammp", "value", identifiers.beammp)
+            CobaltDB.set("playersDB/" .. identifiers.beammp, "ip", "value", identifiers.ip)
             CobaltDB.set("playersDB/" .. player.name, "beammp", "value", identifiers.beammp)
+            CobaltDB.set("playersDB/" .. player.name, "ip", "value", identifiers.ip)
             if CobaltDB.query("playersDB/" .. player.name, "banned", "value") == true then
                 local reason = CobaltDB.query("playersDB/" .. player.name, "banReason", "value") or "You are banned from this server!"
                 return reason
