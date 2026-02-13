@@ -4,7 +4,7 @@ local M = {}
 
 M.COBALT_VERSION = "1.7.6"
 
-local CEI_VERSION = "0.8.6"
+local CEI_VERSION = "0.8.7"
 
 utils.setLogType("CEI",93)
 
@@ -110,6 +110,7 @@ config.restrictions.CEN.editorToggle_default = false
 config.restrictions.CEN.editorSafeModeToggle_default = false
 config.restrictions.CEN.objectEditorToggle_default = false
 config.restrictions.CEN.nodegrabberRender_default = false
+config.restrictions.boost_default = false
 config.restrictions.voteKick = {}
 config.restrictions.voteKick.voteKick_enabled_default = true
 
@@ -481,6 +482,8 @@ local defaultRestrictions = {
     editorSafeModeToggle =      {value = config.restrictions.CEN.editorSafeModeToggle_default},
     objectEditorToggle =        {value = config.restrictions.CEN.objectEditorToggle_default},
     nodegrabberRender =         {value = config.restrictions.CEN.nodegrabberRender_default},
+
+    boost =                     {value = config.restrictions.boost_default},
 
     voteKick_enabled =          {value = config.restrictions.voteKick.voteKick_enabled_default}
 }
@@ -898,6 +901,8 @@ local function onInit()
     config.restrictions.CEN.editorSafeModeToggle =        CobaltDB.query("restrictions", "editorSafeModeToggle", "value")
     config.restrictions.CEN.objectEditorToggle =          CobaltDB.query("restrictions", "objectEditorToggle", "value")
     config.restrictions.CEN.nodegrabberRender =           CobaltDB.query("restrictions", "nodegrabberRender", "value")
+
+    config.restrictions.boost =                           CobaltDB.query("restrictions", "boost", "value")
 
     config.restrictions.voteKick.voteKick_enabled =       CobaltDB.query("restrictions", "voteKick_enabled", "value")
 
@@ -1498,6 +1503,15 @@ function CEISetRestrictions(senderID, data)
                 CobaltDB.set("restrictions", key, "value", config.restrictions.CEN[key .. "_default"])
             else
                 config.restrictions.CEN[key] = value
+                CobaltDB.set("restrictions", key, "value", value)
+            end
+        end
+        if tag == "boost" then
+            if value == "default" then
+                config.restrictions[key] = config.restrictions[key .. "_default"]
+                CobaltDB.set("restrictions", key, "value", config.restrictions[key .. "_default"])
+            else
+                config.restrictions.boost = value
                 CobaltDB.set("restrictions", key, "value", value)
             end
         end
