@@ -2097,6 +2097,34 @@ local function drawCEI()
                             end
                             im.SameLine()
                             im.ShowHelpMarker("Enter new Server Map and press Apply (REQUIRES REJOIN FOR EFFECT)")
+                            
+                            -- Preset map buttons
+                            im.Text("Presets:")
+                            im.SameLine()
+                            if im.SmallButton("GridMap") then
+                                local data = jsonEncode( { "Map", "/levels/GridMap/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
+                            im.SameLine()
+                            if im.SmallButton("Italy") then
+                                local data = jsonEncode( { "Map", "/levels/italy/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
+                            im.SameLine()
+                            if im.SmallButton("Utah") then
+                                local data = jsonEncode( { "Map", "/levels/Utah/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
+                            im.SameLine()
+                            if im.SmallButton("Jungle Rock") then
+                                local data = jsonEncode( { "Map", "/levels/jungle_rock_island/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
+                            
                             im.TreePop()
                         else
                             im.SameLine()
