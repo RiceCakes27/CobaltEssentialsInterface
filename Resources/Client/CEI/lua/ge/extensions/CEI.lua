@@ -2,7 +2,7 @@
 
 local M = {}
 
-local CEI_VERSION = "0.8.5"
+local CEI_VERSION = "0.8.6"
 local logTag = "CEI"
 local gui_module = require("ge/extensions/editor/api/gui")
 local gui = {setupEditorGuiTheme = nop}
@@ -160,6 +160,8 @@ local function rxEnvironment(data)
         environmentVals.dropSizeVal = im.FloatPtr(tonumber(environment.dropSize))
         environmentVals.dropMinSpeedVal = im.FloatPtr(tonumber(environment.dropMinSpeed))
         environmentVals.dropMaxSpeedVal = im.FloatPtr(tonumber(environment.dropMaxSpeed))
+        environmentVals.windMagVal = im.FloatPtr(tonumber(environment.windMag))
+        environmentVals.windDirVal = im.IntPtr(tonumber(environment.windDir))
         environmentVals.teleportTimeoutInt = im.IntPtr(tonumber(environment.teleportTimeout))
         environmentVals.simSpeedVal = im.FloatPtr(tonumber(environment.simSpeed))
         environmentVals.gravityRateVal = im.FloatPtr(tonumber(environment.gravityRate))
@@ -393,6 +395,34 @@ local function CEIRaceCountSound(data)
     Engine.Audio.playOnce('AudioGui', '/art/sound/' .. data)
 end
 
+local dirs = {
+    "N", "NNE", "NE", "ENE",
+    "E", "ESE", "SE", "SSE",
+    "S", "SSW", "SW", "WSW",
+    "W", "WNW", "NW", "NNW"
+}
+
+local arrows = {
+    "↑","`/","/","/`",
+    "→","\\.","\\",".\\",
+    "↓","/.","/","./",
+    "←","`\\","\\","\\`"
+}
+
+local function WindText(deg, speed)
+    deg = (deg % 360 + 360) % 360
+    local index = math.floor((deg / 22.5) + 0.5) % 16 + 1
+    local dirText = dirs[index]
+    local arrow = arrows[index]
+    return string.format(
+        "%6.2f m/s  %03d°  %2s  %3s",
+        speed,
+        deg,
+        arrow,
+        dirText
+    )
+end
+
 local function drawCEI()
     if tableIsEmpty(players) then
         return
@@ -421,80 +451,13 @@ local function drawCEI()
     im.PushStyleColor2(im.Col_Button, im.ImVec4(0.15, 0.15, 0.75, 0.333))
     im.PushStyleColor2(im.Col_ButtonHovered, im.ImVec4(0.1, 0.1, 0.69, 0.5))
     im.PushStyleColor2(im.Col_ButtonActive, im.ImVec4(0.05, 0.05, 0.55, 0.999))
+    im.PushStyleColor2(im.Col_SliderGrab, im.ImVec4(0.5, 0.5, 1, 0.999))
+    im.PushStyleColor2(im.Col_SliderGrabActive, im.ImVec4(0.75, 0.25, 0.25, 0.999))
     im.SetNextWindowBgAlpha(0.666)
 ----------------------------------------------------------------------------------STYLE
     im.Begin("Cobalt Essentials Interface v" .. CEI_VERSION)
     im.SetWindowFontScale(CEIScale[0])
     im.BeginChild1("QuickInfo", im.ImVec2(0, (70*CEIScale[0])), true )
-    im.Text("Spawn")
-    if not config.cobalt.permissions.tempSpawnToggle then
-        im.SameLine()
-        im.TextColored(im.ImVec4(0.0, 1.0, 0.0, 1.0), ">>")
-    else
-        im.SameLine()
-        im.TextColored(im.ImVec4(1.0, 0.0, 0.0, 1.0), "X")
-    end
-    if config.restrictions then
-        if config.restrictions.reset.control then
-            if config.restrictions.reset.enabled and (config.restrictions.reset.timeout - resetsTimerElapsedReset > 0) then
-                im.SameLine()
-                im.Text("| Reset")
-                im.SameLine()
-                im.TextColored(im.ImVec4(1.0, 0.9, 0.0, 1.0), "//")
-                im.SameLine()
-                im.Text(string.format("%.2f",config.restrictions.reset.timeout - resetsTimerElapsedReset) .. "s")
-            elseif config.restrictions.reset.enabled then
-                im.SameLine()
-                im.Text("| Reset")
-                im.SameLine()
-                im.TextColored(im.ImVec4(0.0, 1.0, 0.0, 1.0), ">>")
-            else
-                im.SameLine()
-                im.Text("| Reset")
-                im.SameLine()
-                im.TextColored(im.ImVec4(1.0, 0.0, 0.0, 1.0), "X")
-            end
-        else
-            im.SameLine()
-            im.Text("| Reset")
-            im.SameLine()
-            im.TextColored(im.ImVec4(0.0, 1.0, 0.0, 1.0), ">>")
-        end
-    end
-    if environment.teleportTimeout then
-        if canTeleport and (tonumber(environment.teleportTimeout) - lastTeleport > 0) then
-            im.SameLine()
-            im.Text("| Teleport")
-            im.SameLine()
-            im.TextColored(im.ImVec4(1.0, 0.9, 0.0, 1.0), "//")
-            im.SameLine()
-            im.Text(string.format("%.2f",tonumber(environment.teleportTimeout) - lastTeleport) .. "s")
-        elseif canTeleport then
-            im.SameLine()
-            im.Text("| Teleport")
-            im.SameLine()
-            im.TextColored(im.ImVec4(0.0, 1.0, 0.0, 1.0), ">>")
-        else
-            im.SameLine()
-            im.Text("| Teleport")
-            im.SameLine()
-            im.TextColored(im.ImVec4(1.0, 0.0, 0.0, 1.0), "X")
-        end
-    end
-    im.SameLine()
-    im.Text("| Nametag")
-    if nametagBlockerActive then
-        im.SameLine()
-        im.TextColored(im.ImVec4(1.0, 0.0, 0.0, 1.0), "X")
-    elseif nametagBlockerTimeout ~= nil then
-        im.SameLine()
-        im.TextColored(im.ImVec4(1.0, 0.9, 0.0, 1.0), "//")
-        im.SameLine()
-        im.Text(string.format("%.2f", nametagBlockerTimeout) .. "s")
-    else
-        im.SameLine()
-        im.TextColored(im.ImVec4(0.0, 1.0, 0.0, 1.0), ">>")
-    end
     local tempToD = core_environment.getTimeOfDay()
     local curSecs
     if tempToD then
@@ -508,13 +471,86 @@ local function drawCEI()
         local curMins = math.floor(curSecs / 60)
         curSecs = curSecs - curMins * 60
         local currentTime = string.format("%02d:%02d:%02d", curHours, curMins, curSecs)
-        im.Text("Current time: " .. currentTime)
+        im.Text(currentTime .. "  |")
         local currentTempC = core_environment.getTemperatureK() - 273.15
         local currentTempF = currentTempC * 9/5 + 32
         local currentTempCString = string.format("%.2f", currentTempC)
         local currentTempFString = string.format("%.2f", currentTempF)
         im.SameLine()
-        im.Text("Current temp: " .. currentTempCString .. " °C / " .. currentTempFString .. " °F")
+        im.Text(currentTempCString .. " °C / " .. currentTempFString .. " °F  |")
+        im.SameLine()
+        if environment then
+            im.Text(WindText(environment.windDir, environment.windMag))
+        end
+    end
+    im.Text("Spawn")
+    if not config.cobalt.permissions.tempSpawnToggle then
+        im.SameLine()
+        im.TextColored(im.ImVec4(0.0, 1.0, 0.0, 1.0), ">>")
+    else
+        im.SameLine()
+        im.TextColored(im.ImVec4(1.0, 0.0, 0.0, 1.0), "X")
+    end
+    if config.restrictions then
+        if config.restrictions.reset.control then
+            if config.restrictions.reset.enabled and (config.restrictions.reset.timeout - resetsTimerElapsedReset > 0) then
+                im.SameLine()
+                im.Text("|  Reset")
+                im.SameLine()
+                im.TextColored(im.ImVec4(1.0, 0.9, 0.0, 1.0), "//")
+                im.SameLine()
+                im.Text(string.format("%.2f",config.restrictions.reset.timeout - resetsTimerElapsedReset) .. "s")
+            elseif config.restrictions.reset.enabled then
+                im.SameLine()
+                im.Text("|  Reset")
+                im.SameLine()
+                im.TextColored(im.ImVec4(0.0, 1.0, 0.0, 1.0), ">>")
+            else
+                im.SameLine()
+                im.Text("|  Reset")
+                im.SameLine()
+                im.TextColored(im.ImVec4(1.0, 0.0, 0.0, 1.0), "X")
+            end
+        else
+            im.SameLine()
+            im.Text("|  Reset")
+            im.SameLine()
+            im.TextColored(im.ImVec4(0.0, 1.0, 0.0, 1.0), ">>")
+        end
+    end
+    if environment.teleportTimeout then
+        if canTeleport and (tonumber(environment.teleportTimeout) - lastTeleport > 0) then
+            im.SameLine()
+            im.Text("|  Teleport")
+            im.SameLine()
+            im.TextColored(im.ImVec4(1.0, 0.9, 0.0, 1.0), "//")
+            im.SameLine()
+            im.Text(string.format("%.2f",tonumber(environment.teleportTimeout) - lastTeleport) .. "s")
+        elseif canTeleport then
+            im.SameLine()
+            im.Text("|  Teleport")
+            im.SameLine()
+            im.TextColored(im.ImVec4(0.0, 1.0, 0.0, 1.0), ">>")
+        else
+            im.SameLine()
+            im.Text("|  Teleport")
+            im.SameLine()
+            im.TextColored(im.ImVec4(1.0, 0.0, 0.0, 1.0), "X")
+        end
+    end
+    im.SameLine()
+    im.Text("|  Nametag")
+    if nametagBlockerActive then
+        im.SameLine()
+        im.TextColored(im.ImVec4(1.0, 0.0, 0.0, 1.0), "X")
+    elseif nametagBlockerTimeout ~= nil then
+        im.SameLine()
+        im.TextColored(im.ImVec4(1.0, 0.9, 0.0, 1.0), "//")
+        im.SameLine()
+        im.Text(string.format("%.2f", nametagBlockerTimeout) .. "s")
+    else
+        im.SameLine()
+        im.TextColored(im.ImVec4(0.0, 1.0, 0.0, 1.0), ">>")
     end
     im.EndChild()
     im.PushItemWidth(120*CEIScale[0])
@@ -4145,13 +4181,65 @@ local function drawCEI()
                                     end
                                 end
                             end
+                                im.ShowHelpMarker(descriptions.environment.windMag)
+                                im.SameLine()
+                                im.Text("Wind Magnitude: ")
+                                im.SameLine()
+                                im.PushItemWidth(120*CEIScale[0])
+                                if im.InputFloat("##windMagnitude", environmentVals.windMagVal, 0.01, 0.1) then
+                                    if environmentVals.windMagVal[0] < 0 then
+                                        environmentVals.windMagVal = im.FloatPtr(0)
+                                    elseif environmentVals.windMagVal[0] > 100 then
+                                        environmentVals.windMagVal = im.FloatPtr(100)
+                                    end
+                                    local data = jsonEncode( { "windMag", tostring(environmentVals.windMagVal[0]) } )
+                                    TriggerServerEvent("CEISetEnv", data)
+                                    log('W', logTag, "CEISetEnv Called: " .. data)
+                                end
+                                im.PopItemWidth()
+                                im.SameLine()
+                                if im.SmallButton("Reset##WM") then
+                                    local data = jsonEncode( { "windMag", "default" } )
+                                    TriggerServerEvent("CEISetEnv", data)
+                                    log('W', logTag, "CEISetEnv Called: " .. data)
+                                end
+                                im.ShowHelpMarker(descriptions.environment.windDir)
+                                im.SameLine()
+                                im.Text("Wind Direction: ")
+                                im.SameLine()
+                                im.PushItemWidth(90*CEIScale[0])
+                                if im.SliderInt("##windDir", environmentVals.windDirVal, 0, 360) then
+                                    local data = jsonEncode( { "windDir", tostring(environmentVals.windDirVal[0]) } )
+                                    TriggerServerEvent("CEISetEnv", data)
+                                    log('W', logTag, "CEISetEnv Called: " .. data)
+                                end
+                                im.PopItemWidth()
+                                im.SameLine()
+                                im.PushItemWidth(1)
+                                if im.InputInt("##windDirFine", environmentVals.windDirVal, 1, 5) then
+                                    if environmentVals.windDirVal[0] < 0 then
+                                        environmentVals.windDirVal = im.IntPtr(360)
+                                    elseif environmentVals.windDirVal[0] > 360 then
+                                        environmentVals.windDirVal = im.IntPtr(0)
+                                    end
+                                    local data = jsonEncode( { "windDir", tostring(environmentVals.windDirVal[0]) } )
+                                    TriggerServerEvent("CEISetEnv", data)
+                                    log('W', logTag, "CEISetEnv Called: " .. data)
+                                end
+                                im.PopItemWidth()
+                                im.SameLine()
+                                if im.SmallButton("Reset##WD") then
+                                    local data = jsonEncode( { "windDir", "default" } )
+                                    TriggerServerEvent("CEISetEnv", data)
+                                    log('W', logTag, "CEISetEnv Called: " .. data)
+                                end
                             im.Unindent()
                         end
                         im.TreePop()
                     else
                         if currentGroup == "owner" or currentGroup == "admin" or currentUIPerm >= config.cobalt.interface.environmentAdmin then
                             im.SameLine()
-                            im.ShowHelpMarker(descriptions.environment.controlSun)
+                            im.ShowHelpMarker(descriptions.environment.controlWeather)
                             if environment.controlWeather then
                                 im.SameLine()
                                 im.PushStyleColor2(im.Col_Button, im.ImVec4(0.15, 0.69, 0.05, 0.333))
@@ -4908,7 +4996,7 @@ local function drawCEI()
         end
     end
     im.EndChild()
-    im.PopStyleColor(22)
+    im.PopStyleColor(24)
     im.End()
 end
 
@@ -5589,6 +5677,14 @@ local function onDropMaxSpeedDefault()
     end
 end
 
+local function onWind(windMag, windDir)
+    local windDirRad = math.rad(windDir)
+    local x = math.sin(windDirRad) * windMag
+    local y = math.cos(windDirRad) * windMag
+    local z = 0
+    be:queueAllObjectLua('obj:setWind(' .. x .. ',' .. y .. ',' .. z .. ')')
+end
+
 local function onTempCurve()
     local tempCurve
     if environment.useTempCurve == true and defaultTempCurveSet == false then
@@ -5691,6 +5787,8 @@ local function onWorldReadyState(state)
         environmentDefaults.dropSize = onDropSizeDefault()
         environmentDefaults.dropMinSpeed = onDropMinSpeedDefault()
         environmentDefaults.dropMaxSpeed = onDropMaxSpeedDefault()
+        environmentDefaults.windMag = 0
+        environmentDefaults.windDir = 180
         if not syncRequested then
             if MPConfig then
                 TriggerServerEvent("requestCEISync", "")
@@ -5742,6 +5840,7 @@ local function rxEnvironmentReset()
     onDropSize(environmentDefaults.dropSize)
     onDropMinSpeed(environmentDefaults.dropMinSpeed)
     onDropMaxSpeed(environmentDefaults.dropMaxSpeed)
+    onWind(environmentDefaults.windMag, environmentDefaults.windDir)
     onGravity(environmentDefaults.gravityRate)
     onTempCurve()
     core_environment.reset()
@@ -5789,6 +5888,7 @@ local function rxWeatherReset()
     onDropSize(environmentDefaults.dropSize)
     onDropMinSpeed(environmentDefaults.dropMinSpeed)
     onDropMaxSpeed(environmentDefaults.dropMaxSpeed)
+    onWind(environmentDefaults.windMag, environmentDefaults.windDir)
     onGravity(environmentDefaults.gravityRate)
     onTempCurve()
     core_environment.reset()
@@ -5880,6 +5980,7 @@ local function runEnvironment(dt)
                 onDropSize(environment.dropSize)
                 onDropMinSpeed(environment.dropMinSpeed)
                 onDropMaxSpeed(environment.dropMaxSpeed)
+                onWind(environment.windMag, environment.windDir)
             elseif environment.controlWeather == false and defaultWeatherSet == false then
                 defaultWeatherSet = true
             end
