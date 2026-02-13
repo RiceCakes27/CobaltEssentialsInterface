@@ -2,7 +2,7 @@
 
 local M = {}
 
-local CEI_VERSION = "0.8.6"
+local CEI_VERSION = "0.8.7"
 local logTag = "CEI"
 local gui_module = require("ge/extensions/editor/api/gui")
 local gui = {setupEditorGuiTheme = nop}
@@ -23,6 +23,7 @@ local isFrozen = {}
 local resetsBlockedInputActions = {}
 local allResetsBlockedInputActions = {}
 local editorBlocked = {}
+local boostBlocked = { "funBoost", "funBoostBackwards", "funFling", "funFlingDownward" }
 local descriptions = {}
 local environmentValsSet = false
 local environmentVals = {}
@@ -64,6 +65,11 @@ local envObjectIdCache = {}
 local syncRequested = false
 local environmentDefaults = {}
 local environmentPause = false
+
+local b
+local bb
+local fu
+local fd
 
 local function getObject(className, preferredObjName)
     if envObjectIdCache[className] then
@@ -198,6 +204,21 @@ local function rxConfigData(data)
 
     extensions.core_input_actionFilter.setGroup('cei2', editorBlocked)
     extensions.core_input_actionFilter.addAction(0, 'cei2', true)
+
+    if config.restrictions.boost == true then
+        core_funstuff.boost = function() end
+        core_funstuff.boostBackwards = function() end
+        core_funstuff.flingUpward = function() end
+        core_funstuff.flingDownward = function() end
+    else
+        core_funstuff.boost = b
+        core_funstuff.boostBackwards = bb
+        core_funstuff.flingUpward = fu
+        core_funstuff.flingDownward = fd
+    end
+
+    extensions.core_input_actionFilter.setGroup('boost', boostBlocked)
+    extensions.core_input_actionFilter.addAction(0, 'boost', config.restrictions.boost)
 
     if configValsSet == false then
         configVals.server = {}
@@ -2998,6 +3019,42 @@ local function drawCEI()
                                 log('W', logTag, "CEISetRestrictions Called: " .. data)
                             end
                         end
+
+                        if im.TreeNode1("Boost") then
+                            im.SameLine()
+                            if im.SmallButton("Reset##boost") then
+                                local data = jsonEncode( { "boost", "default", "boost" } )
+                                TriggerServerEvent("CEISetRestrictions", data)
+                                log('W', logTag, "CEISetRestrictions Called: " .. data)
+                            end
+                            im.Indent()
+                            im.Text("Boost: ")
+                            if config.restrictions.boost then
+                                im.SameLine()
+                                if im.SmallButton("Blocked##boost") then
+                                    local data = jsonEncode( { "boost", false, "boost" } )
+                                    TriggerServerEvent("CEISetRestrictions", data)
+                                    log('W', logTag, "CEISetRestrictions Called: " .. data)
+                                end
+                            else
+                                im.SameLine()
+                                if im.SmallButton("Allowed##boost") then
+                                    local data = jsonEncode( { "boost", true, "boost" } )
+                                    TriggerServerEvent("CEISetRestrictions", data)
+                                    log('W', logTag, "CEISetRestrictions Called: " .. data)
+                                end
+                            end
+                            im.TreePop()
+                            im.Unindent()
+                        else
+                            im.SameLine()
+                            if im.SmallButton("Reset##boost") then
+                                local data = jsonEncode( { "boost", "default", "boost" } )
+                                TriggerServerEvent("CEISetRestrictions", data)
+                                log('W', logTag, "CEISetRestrictions Called: " .. data)
+                            end
+                        end
+
                         im.Unindent()
                     end
                 end
@@ -5794,6 +5851,12 @@ local function onWorldReadyState(state)
                 TriggerServerEvent("requestCEISync", "")
                 syncRequested = true
             end
+        end
+        if core_funstuff then
+            b = core_funstuff.boost
+            bb = core_funstuff.boostBackwards
+            fu = core_funstuff.flingUpward
+            fd = core_funstuff.flingDownward
         end
     end
 end
