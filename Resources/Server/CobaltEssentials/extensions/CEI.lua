@@ -4,7 +4,7 @@ local M = {}
 
 M.COBALT_VERSION = "1.7.6"
 
-local CEI_VERSION = "0.8.5"
+local CEI_VERSION = "0.8.6"
 
 utils.setLogType("CEI",93)
 
@@ -154,6 +154,8 @@ local environmentDefaults = {
     dropMinSpeed = 0.1,
     dropMaxSpeed = 0.2,
     precipType = "rain_medium",
+    windMag = 0,
+    windDir = 180,
     teleportTimeout = 5,
     simSpeed = 1,
     controlSimSpeed = false,
@@ -260,6 +262,8 @@ local descriptions = {
         dropMinSpeed = "What is the minimum speed of precipitation?",
         dropMaxSpeed = "What is the maximum speed of precipitation?",
         precipType = "What type of precipitation do we use?",
+        windMag = "The magnitude of the wind's strength in m/s",
+        windDir = "The wind's heading in degrees",
         teleportTimeout = "How long between telports?",
         simSpeed = "At what rate does the simulation run?",
         controlSimSpeed = "Do we control everyone's sim speed?",
@@ -328,6 +332,8 @@ local defaultEnvironmentValues = {
     dropMinSpeed =        {value = environmentDefaults.dropMinSpeed},
     dropMaxSpeed =        {value = environmentDefaults.dropMaxSpeed},
     precipType =          {value = environmentDefaults.precipType},
+    windMag =             {value = environmentDefaults.windMag},
+    windDir =             {value = environmentDefaults.windDir},
     teleportTimeout =     {value = environmentDefaults.teleportTimeout},
     simSpeed =            {value = environmentDefaults.simSpeed},
     controlSimSpeed =     {value = environmentDefaults.controlSimSpeed},
@@ -383,6 +389,8 @@ local defaultDescriptions = {
     dropMinSpeed =              {description = descriptions.environment.dropMinSpeed},
     dropMaxSpeed =              {description = descriptions.environment.dropMaxSpeed},
     precipType =                {description = descriptions.environment.precipType},
+    windMag =                   {description = descriptions.environment.windMag},
+    windDir =                   {description = descriptions.environment.windDir},
     teleportTimeout =           {description = descriptions.environment.teleportTimeout},
     simSpeed =                  {description = descriptions.environment.simSpeed},
     controlSimSpeed =           {description = descriptions.environment.controlSimSpeed},
@@ -936,6 +944,8 @@ local function onInit()
     environment.dropMinSpeed =                            CobaltDB.query("environment", "dropMinSpeed", "value")
     environment.dropMaxSpeed =                            CobaltDB.query("environment", "dropMaxSpeed", "value")
     environment.precipType =                              CobaltDB.query("environment", "precipType", "value")
+    environment.windMag =                                 CobaltDB.query("environment", "windMag", "value")
+    environment.windDir =                                 CobaltDB.query("environment", "windDir", "value")
     environment.teleportTimeout =                         CobaltDB.query("environment", "teleportTimeout", "value")
     environment.simSpeed =                                CobaltDB.query("environment", "simSpeed", "value")
     environment.controlSimSpeed =                         CobaltDB.query("environment", "controlSimSpeed", "value")
@@ -1524,6 +1534,8 @@ function CEISetEnv(senderID, data)
             environment.dropMinSpeed =        environmentDefaults.dropMinSpeed
             environment.dropMaxSpeed =        environmentDefaults.dropMaxSpeed
             environment.precipType =          environmentDefaults.precipType
+            environment.windMag =             environmentDefaults.windMag
+            environment.windDir =             environmentDefaults.windDir
             MP.TriggerClientEvent(-1, "rxWeatherReset", "")
         elseif key == "allSun" then
             if players[senderID].permissions.UI >= config.cobalt.interface.environmentAdmin then
