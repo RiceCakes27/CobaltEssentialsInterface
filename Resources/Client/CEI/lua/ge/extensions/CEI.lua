@@ -2097,12 +2097,60 @@ local function drawCEI()
                             end
                             im.SameLine()
                             im.ShowHelpMarker("Enter new Server Map and press Apply (REQUIRES REJOIN FOR EFFECT)")
-                            
-                            -- Preset map buttons
-                            im.Text("Presets:")
+                            -- Preset map buttons (alphabetically sorted)
+                            im.Text("Preset Maps:")
+                            -- Row 1
+                            if im.SmallButton("Automation Test Track") then
+                                local data = jsonEncode( { "Map", "/levels/automation_test_track/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
                             im.SameLine()
-                            if im.SmallButton("GridMap") then
-                                local data = jsonEncode( { "Map", "/levels/GridMap/info.json" } )
+                            if im.SmallButton("Cliff") then
+                                local data = jsonEncode( { "Map", "/levels/Cliff/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
+                            im.SameLine()
+                            if im.SmallButton("Derby") then
+                                local data = jsonEncode( { "Map", "/levels/derby/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
+                            im.SameLine()
+                            if im.SmallButton("Driver Training") then
+                                local data = jsonEncode( { "Map", "/levels/driver_training/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
+
+                            -- Row 2
+                            if im.SmallButton("East Coast USA") then
+                                local data = jsonEncode( { "Map", "/levels/east_coast_usa/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
+                            im.SameLine()
+                            if im.SmallButton("Grid, Small") then
+                                local data = jsonEncode( { "Map", "/levels/smallgrid/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
+                            im.SameLine()
+                            if im.SmallButton("GridMap V2") then
+                                local data = jsonEncode( { "Map", "/levels/gridmap_v2/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
+                            im.SameLine()
+                            if im.SmallButton("Hirochi Raceway") then
+                                local data = jsonEncode( { "Map", "/levels/hirochi_raceway/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
+                            -- Row 3                 
+                            if im.SmallButton("Industrial") then
+                                local data = jsonEncode( { "Map", "/levels/Industrial/info.json" } )
                                 TriggerServerEvent("CEISetCfg", data)
                                 log('W', logTag, "CEISetCfg Called: " .. data)
                             end
@@ -2113,8 +2161,8 @@ local function drawCEI()
                                 log('W', logTag, "CEISetCfg Called: " .. data)
                             end
                             im.SameLine()
-                            if im.SmallButton("Utah") then
-                                local data = jsonEncode( { "Map", "/levels/Utah/info.json" } )
+                            if im.SmallButton("Johnson Valley") then
+                                local data = jsonEncode( { "Map", "/levels/johnson_valley/info.json" } )
                                 TriggerServerEvent("CEISetCfg", data)
                                 log('W', logTag, "CEISetCfg Called: " .. data)
                             end
@@ -2124,33 +2172,28 @@ local function drawCEI()
                                 TriggerServerEvent("CEISetCfg", data)
                                 log('W', logTag, "CEISetCfg Called: " .. data)
                             end
-                            
-                            im.TreePop()
-                        else
-                            im.SameLine()
-                            im.Text(config.server.map)
-                        end
-                        im.Separator()
-                        im.SetWindowFontScale(CEIScale[0])
-                        if im.TreeNode1("description:") then
-                            im.SameLine()
-                            im.Text(config.server.description)
-                            im.Text("        ")
-                            im.SameLine()
-                            im.InputText("##description", configVals.server.descriptionInput, 256)
-                            im.Text("        ")
-                            im.SameLine()
-                            if im.SmallButton("Apply##description") then
-                                local data = jsonEncode( { "Description", ffi.string(configVals.server.descriptionInput) } )
+                            -- Row 4
+                            if im.SmallButton("Small Island") then
+                                local data = jsonEncode( { "Map", "/levels/small_island/info.json" } )
                                 TriggerServerEvent("CEISetCfg", data)
                                 log('W', logTag, "CEISetCfg Called: " .. data)
                             end
                             im.SameLine()
-                            im.ShowHelpMarker("Enter new Server Description and press Apply")
+                            if im.SmallButton("Utah") then
+                                local data = jsonEncode( { "Map", "/levels/Utah/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
+                            im.SameLine()
+                            if im.SmallButton("West Coast USA") then
+                                local data = jsonEncode( { "Map", "/levels/west_coast_usa/info.json" } )
+                                TriggerServerEvent("CEISetCfg", data)
+                                log('W', logTag, "CEISetCfg Called: " .. data)
+                            end
                             im.TreePop()
                         else
                             im.SameLine()
-                            im.Text(config.server.description)
+                            im.Text(config.server.map)
                         end
                         im.Separator()
                         im.SetWindowFontScale(CEIScale[0])
